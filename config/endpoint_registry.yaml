@@ -1,0 +1,310 @@
+# Tushare接口注册表（5000+积分可用范围）
+# 格式：api_name / category / permission_mode / min_points / pk_fields / watermark_field / max_rows / description
+
+# ==================== 基础数据（必需） ====================
+stock_basic:
+  category: "基础数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code"]
+  watermark_field: "list_date"
+  max_rows: 5000
+  description: "股票列表与基本信息"
+  status: "available"
+
+trade_cal:
+  category: "基础数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["exchange", "cal_date"]
+  watermark_field: "cal_date"
+  max_rows: 10000
+  description: "交易日历"
+  status: "available"
+
+# ==================== 股票行情（核心） ====================
+daily:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 120
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "日线行情（未复权）"
+  status: "available"
+  increment_strategy: "by_trade_date"
+
+adj_factor:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "复权因子"
+  status: "available"
+  increment_strategy: "by_trade_date"
+
+daily_basic:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "每日指标（PE/PB/市值/换手）"
+  status: "available"
+  increment_strategy: "by_trade_date"
+
+weekly:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "周线行情"
+  status: "available"
+
+monthly:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "月线行情"
+  status: "available"
+
+moneyflow:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "个股资金流向"
+  status: "available"
+
+stk_limit:
+  category: "股票行情"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "涨跌停价格"
+  status: "available"
+
+# ==================== 财务数据（价值投资必需） ====================
+income:
+  category: "财务数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "end_date", "ann_date"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "利润表"
+  status: "available"
+  increment_strategy: "by_ann_date_with_lookback"
+  lookback_days: 90
+
+balancesheet:
+  category: "财务数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "end_date", "ann_date"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "资产负债表"
+  status: "available"
+  increment_strategy: "by_ann_date_with_lookback"
+  lookback_days: 90
+
+cashflow:
+  category: "财务数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "end_date", "ann_date"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "现金流量表"
+  status: "available"
+  increment_strategy: "by_ann_date_with_lookback"
+  lookback_days: 90
+
+fina_indicator:
+  category: "财务数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "end_date", "ann_date"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "财务指标（ROE/毛利率/资产负债率）"
+  status: "available"
+  increment_strategy: "by_ann_date_with_lookback"
+  lookback_days: 90
+
+dividend:
+  category: "财务数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "ann_date", "end_date"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "分红送股"
+  status: "available"
+
+disclosure_date:
+  category: "财务数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "end_date"]
+  watermark_field: "actual_date"
+  max_rows: 5000
+  description: "财报披露计划"
+  status: "available"
+
+# ==================== 指数数据 ====================
+index_basic:
+  category: "指数数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code"]
+  watermark_field: null
+  max_rows: 5000
+  description: "指数基本信息"
+  status: "available"
+
+index_daily:
+  category: "指数数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "指数日线行情"
+  status: "available"
+
+index_weight:
+  category: "指数数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["index_code", "con_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "指数成分与权重"
+  status: "available"
+
+index_classify:
+  category: "指数数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["index_code", "industry_code"]
+  watermark_field: null
+  max_rows: 5000
+  description: "申万行业分类"
+  status: "available"
+
+index_member:
+  category: "指数数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["index_code", "con_code"]
+  watermark_field: "in_date"
+  max_rows: 5000
+  description: "指数成分股列表"
+  status: "available"
+
+index_dailybasic:
+  category: "指数数据"
+  permission_mode: "points"
+  min_points: 4000
+  pk_fields: ["ts_code", "trade_date"]
+  watermark_field: "trade_date"
+  max_rows: 5000
+  description: "指数每日指标（PE/PB）"
+  status: "available"
+
+# ==================== 基金数据 ====================
+fund_basic:
+  category: "基金数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code"]
+  watermark_field: "list_date"
+  max_rows: 5000
+  description: "基金列表"
+  status: "available"
+
+fund_nav:
+  category: "基金数据"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "nav_date"]
+  watermark_field: "nav_date"
+  max_rows: 5000
+  description: "基金净值"
+  status: "available"
+
+# ==================== 独立权限接口（5000+积分无法直接使用） ====================
+stk_mins:
+  category: "分钟行情"
+  permission_mode: "independent"
+  min_points: null
+  pk_fields: ["ts_code", "trade_time"]
+  watermark_field: "trade_time"
+  max_rows: 8000
+  description: "股票分钟线（需单独开通）"
+  status: "no_permission"
+
+news:
+  category: "新闻数据"
+  permission_mode: "independent"
+  min_points: null
+  pk_fields: ["id"]
+  watermark_field: "datetime"
+  max_rows: 5000
+  description: "财经新闻（需单独开通）"
+  status: "no_permission"
+
+anns:
+  category: "公告数据"
+  permission_mode: "independent"
+  min_points: null
+  pk_fields: ["ann_id"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "公司公告（需单独开通）"
+  status: "no_permission"
+
+# ==================== 其他有用接口 ====================
+new_share:
+  category: "IPO数据"
+  permission_mode: "points"
+  min_points: 120
+  pk_fields: ["ts_code"]
+  watermark_field: "ipo_date"
+  max_rows: 5000
+  description: "IPO新股列表"
+  status: "available"
+
+suspend_d:
+  category: "停牌复牌"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "suspend_date"]
+  watermark_field: "suspend_date"
+  max_rows: 5000
+  description: "每日停牌信息"
+  status: "available"
+
+namechange:
+  category: "公司变更"
+  permission_mode: "points"
+  min_points: 2000
+  pk_fields: ["ts_code", "ann_date"]
+  watermark_field: "ann_date"
+  max_rows: 5000
+  description: "股票曾用名"
+  status: "available"
