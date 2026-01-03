@@ -146,6 +146,50 @@ streamlit run ui/app.py
 - **不要把 `.env` 文件上传到 GitHub**（已配置 `.gitignore` 保护）
 - **数据库文件可以备份**：直接复制 `data/` 目录即可
 - **分享给他人**：只分享代码，不要分享 `.env` 和 `data/` 目录
+
+**GitHub使用流程**：
+1. 先在本地测试所有功能
+2. 成功后下载使用
+3. Token始终保存在你自己的电脑上，**不会配置到网站上**
+
+---
+
+## 📐 数据设计与接口清单
+
+### ✅ 绝对索引保障
+**本系统强制使用绝对索引，禁止相对索引**：
+- **交易日面板**：PRIMARY KEY (`ts_code`, `trade_date`) - 股票代码+交易日期
+- **财务面板**：PRIMARY KEY (`ts_code`, `end_date`, `ann_date`) - 股票代码+报告期+公告日期
+- **禁止使用**：OFFSET、LIMIT、自增ID等相对索引方式
+
+详细规范请查看：**[docs/DATA_DESIGN.md](docs/DATA_DESIGN.md)**
+
+### 📋 接口完整清单
+系统支持 **50+** Tushare接口，按积分分级：
+- **120积分**：日线行情（1个接口）
+- **2000积分**：股票列表、财务三表、日线指标等（35+接口）
+- **4000-5000积分**：分钟线、财务明细等（10+接口）
+- **10000+积分**：Level-2行情、高频数据等（5+接口）
+- **独立权限**：新闻公告、港美股数据等（需单独申请）
+
+完整清单请查看：**[docs/API_COMPLETE_LIST.md](docs/API_COMPLETE_LIST.md)**
+
+### 🔐 权限管理机制
+- **权限探测**：首次使用时自动探测所有接口权限，结果存入 `endpoint_capabilities` 表
+- **友好降级**：无权限接口显示"⚠️ 需要X积分"，不会报错崩溃
+- **UI展示**：在"API Catalog"页面查看你有权限的接口（绿色✓）和无权限的接口（红色✗）
+
+---
+
+## 🚀 快速开始
+
+### 1️⃣ 安装依赖
+
+```bash
+# 进入项目目录
+cd Tushare
+
+# 激活虚拟环境（如果使用）
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 安装依赖
@@ -310,24 +354,56 @@ zip -r Tushare.zip . -x "*.git*" -x "*__pycache__*" -x "venv/*"
 
 ```
 Tushare/
-├── config/                  # 配置
+├── config/                  # 配置文件
 │   ├── settings.py         # 配置管理
-│   └── endpoint_registry.yaml  # 接口注册表（40+接口）
-├── data/                    # 数据目录
+│   └── endpoint_registry.yaml  # 接口注册表（25+接口）
+├── data/                    # 数据目录（本地存储，不提交到Git）
 │   ├── raw/                # 原始数据
 │   ├── clean/              # 清洗数据
-│   └── serve/              # 服务层（DuckDB）
+│   └── serve/              # 服务层（DuckDB数据库）
+│       └── tushare.duckdb  # 本地数据库文件
+├── docs/                    # 📚 技术文档（必读）
+│   ├── README.md           # 文档导航
+│   ├── DATA_DESIGN.md      # 数据设计规范（主键、增量、权限）
+│   └── API_COMPLETE_LIST.md # 接口完整清单（按积分分类）
 ├── src/                     # 核心代码
-│   ├── core/               # 核心模块
+│   ├── core/               # 核心模块（数据库、客户端、限频）
 │   │   ├── database.py     # DuckDB管理
 │   │   ├── tushare_client.py  # Tushare客户端
 │   │   └── rate_limiter.py    # 限频器
-│   ├── etl/                # ETL模块
+│   ├── etl/                # ETL模块（提取、转换、加载）
 │   │   ├── extractors.py   # 数据提取
 │   │   ├── transformers.py # 数据转换
 │   │   └── loaders.py      # 数据加载
-│   ├── panel/              # 面板构建
+│   ├── panel/              # 面板构建（daily_panel、funda_panel）
 │   │   ├── daily_panel.py  # 交易日面板
+│   │   └── funda_panel.py  # 财务面板
+│   └── utils/              # 工具函数
+├── ui/                      # Streamlit UI（本地运行）
+│   ├── app.py              # 主应用
+│   └── pages/              # 多页面
+│       ├── 1_🏠_Market_Terminal.py    # 股票终端
+│       ├── 2_🔧_Data_Studio.py        # 数据工作台
+│       ├── 3_📊_API_Catalog.py        # 接口目录
+│       └── 4_⚙️_Settings.py           # 系统设置
+├── scripts/                 # 工具脚本
+│   ├── init_db.py          # 初始化数据库
+│   └── probe_capabilities.py  # 探测接口能力
+├── .env.example            # 配置模板
+├── .env                    # 你的配置（不提交到Git）
+├── .gitignore              # Git忽略配置
+├── requirements.txt         # Python依赖
+├── start.sh                # 快速启动脚本
+└── README.md               # 本文件
+```
+
+**重点目录说明**：
+- 📚 `docs/` - **技术文档**（主键设计、接口清单、权限管理）
+- 💾 `data/` - 本地数据存储（不会提交到Git）
+- 🔧 `src/` - 核心业务逻辑（可复用到路线B）
+- 🖥️ `ui/` - Streamlit前端（路线A特有）
+
+---
 │   │   └── funda_panel.py  # 财务面板
 │   └── utils/              # 工具函数
 ├── ui/                      # Streamlit UI
@@ -347,9 +423,22 @@ Tushare/
 
 ---
 
-## 📊 接口注册表（5000+积分可用）
+## 📊 数据设计与接口清单
 
-### 核心接口
+### 🔑 核心设计原则
+
+✅ **绝对索引**：所有表使用 `(ts_code, trade_date)` 等唯一主键  
+✅ **权限透明**：每个接口显示积分门槛与当前状态  
+✅ **增量可恢复**：按日期水位增量，支持断点续跑  
+✅ **幂等写入**：按主键Upsert，可重复运行  
+
+### 📚 详细文档
+
+- **[数据设计规范](docs/DATA_DESIGN.md)**：主键策略、增量模式、权限管理、数据质量保障
+- **[接口完整清单](docs/API_COMPLETE_LIST.md)**：所有积分档位的接口列表（120/2000/5000/10000+）
+
+### 核心接口示例
+
 | 接口名 | 类别 | 最低积分 | 主键 | 增量字段 |
 |--------|------|---------|------|---------|
 | daily | 股票行情 | 120 | (ts_code, trade_date) | trade_date |
@@ -362,7 +451,7 @@ Tushare/
 | trade_cal | 基础数据 | 2000 | (exchange, cal_date) | cal_date |
 | stock_basic | 基础数据 | 2000 | (ts_code) | list_date |
 
-完整40+接口请查看 [config/endpoint_registry.yaml](config/endpoint_registry.yaml)
+**已实现：25个核心接口** | [完整列表](docs/API_COMPLETE_LIST.md) | [接口配置](config/endpoint_registry.yaml)
 
 ---
 
