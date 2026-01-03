@@ -1,45 +1,62 @@
 #!/bin/bash
-# 快速启动脚本
 
-echo "=================================="
-echo "📈 Tushare 数据面板系统"
-echo "=================================="
+echo "========================================"
+echo "   Tushare 数据分析系统 - 一键启动"
+echo "========================================"
 echo ""
 
-# 检查 .env 文件
-if [ ! -f .env ]; then
-    echo "⚠️  未找到 .env 文件"
-    echo "正在复制 .env.example..."
-    cp .env.example .env
-    echo "✅ 已创建 .env 文件"
-    echo ""
-    echo "请编辑 .env 文件，填入你的 Tushare Token，然后重新运行此脚本"
-    echo "编辑命令: nano .env 或 vim .env"
+# 检查Python是否安装
+if ! command -v python3 &> /dev/null; then
+    echo "[错误] 未检测到Python3，请先安装Python 3.8+"
+    echo "Ubuntu/Debian: sudo apt install python3 python3-venv python3-pip"
+    echo "macOS: brew install python3"
     exit 1
 fi
 
-# 检查是否配置了 Token
-if grep -q "your_token_here" .env; then
-    echo "⚠️  Token 未配置"
-    echo "请编辑 .env 文件，将 TUSHARE_TOKEN 替换为你的实际 Token"
-    echo "编辑命令: nano .env 或 vim .env"
-    exit 1
+# 检查.env文件是否存在
+if [ ! -f ".env" ]; then
+    echo "[提示] 首次运行，正在创建配置文件..."
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        echo "[重要] 请先编辑 .env 文件，填入你的Tushare token"
+        echo ""
+        echo "运行命令: nano .env"
+        echo "修改 TUSHARE_TOKEN=your_token_here"
+        echo "保存后重新运行此脚本"
+        exit 0
+    fi
 fi
 
-echo "✅ 配置文件检查通过"
-echo ""
+# 检查虚拟环境
+if [ ! -d "venv" ]; then
+    echo "[1/4] 创建虚拟环境..."
+    python3 -m venv venv
+fi
 
-# 检查数据库是否初始化
-if [ ! -f data/serve/tushare.duckdb ]; then
-    echo "🔧 首次运行，正在初始化数据库..."
+# 激活虚拟环境
+echo "[2/4] 激活虚拟环境..."
+source venv/bin/activate
+
+# 安装依赖
+echo "[3/4] 检查依赖..."
+pip install -r requirements.txt --quiet
+
+# 初始化数据库
+if [ ! -f "data/serve/tushare.duckdb" ]; then
+    echo "[4/4] 初始化数据库..."
     python scripts/init_db.py
-    echo ""
+else
+    echo "[4/4] 数据库已存在，跳过初始化"
 fi
 
-echo "🚀 启动 Streamlit UI..."
 echo ""
-echo "浏览器将打开 http://localhost:8501"
+echo "========================================"
+echo "   启动成功！浏览器即将打开..."
+echo "   如未自动打开，请访问: http://localhost:8501"
+echo "========================================"
+echo ""
 echo "按 Ctrl+C 停止服务"
 echo ""
 
+# 启动Streamlit
 streamlit run ui/app.py
