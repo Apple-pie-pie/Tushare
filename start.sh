@@ -27,6 +27,27 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# 检查并更新代码
+if [ -d ".git" ]; then
+    echo "[提示] 检查代码更新..."
+    git fetch origin &> /dev/null
+    LOCAL=$(git rev-parse HEAD)
+    REMOTE=$(git rev-parse @{u} 2>/dev/null)
+    
+    if [ "$LOCAL" != "$REMOTE" ] && [ -n "$REMOTE" ]; then
+        echo "[发现更新] 正在从GitHub拉取最新代码..."
+        if git pull origin main; then
+            echo "[成功] 代码已更新到最新版本！"
+        else
+            echo "[警告] 代码更新失败，可能有本地修改冲突"
+            echo "[提示] 继续使用当前版本..."
+        fi
+    else
+        echo "[成功] 已是最新版本"
+    fi
+    echo ""
+fi
+
 # 检查虚拟环境
 if [ ! -d "venv" ]; then
     echo "[1/4] 创建虚拟环境..."
@@ -37,9 +58,21 @@ fi
 echo "[2/4] 激活虚拟环境..."
 source venv/bin/activate
 
-# 安装依赖
+# 检查并安装依赖
 echo "[3/4] 检查依赖..."
-pip install -r requirements.txt --quiet
+if ! python -c "import duckdb" &> /dev/null; then
+    echo "[提示] 检测到缺少依赖，正在自动安装（首次运行可能需要几分钟）..."
+    pip install --upgrade pip --quiet
+    pip install -r requirements.txt
+    
+    if [ $? -ne 0 ]; then
+        echo "[错误] 依赖安装失败，请检查网络连接"
+        exit 1
+    fi
+    echo "[成功] 依赖安装完成！"
+else
+    echo "[成功] 依赖已就绪"
+fi
 
 # 初始化数据库
 if [ ! -f "data/serve/tushare.duckdb" ]; then

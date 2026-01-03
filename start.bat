@@ -29,19 +29,60 @@ if not exist ".env" (
     )
 )
 
+REM 检查并更新代码
+if exist ".git" (
+    echo [提示] 检查代码更新...
+    git fetch origin >nul 2>&1
+    for /f %%i in ('git rev-parse HEAD') do set LOCAL=%%i
+    for /f %%i in ('git rev-parse @{u}') do set REMOTE=%%i
+    
+    if not "!LOCAL!"=="!REMOTE!" (
+        echo [发现更新] 正在从GitHub拉取最新代码...
+        git pull origin main
+        if %errorlevel% neq 0 (
+            echo [警告] 代码更新失败，可能有本地修改冲突
+            echo [提示] 继续使用当前版本...
+        ) else (
+            echo [成功] 代码已更新到最新版本！
+        )
+    ) else (
+        echo [成功] 已是最新版本
+    )
+    echo.
+)
+
 REM 检查虚拟环境
 if not exist "venv\" (
     echo [1/4] 创建虚拟环境...
     python -m venv venv
+    if %errorlevel% neq 0 (
+        echo [错误] 虚拟环境创建失败
+        pause
+        exit /b 1
+    )
 )
 
 REM 激活虚拟环境
 echo [2/4] 激活虚拟环境...
 call venv\Scripts\activate.bat
 
-REM 安装依赖
+REM 检查并安装依赖
 echo [3/4] 检查依赖...
-pip install -r requirements.txt --quiet
+python -c "import duckdb" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [提示] 检测到缺少依赖，正在自动安装（首次运行可能需要几分钟）...
+    python -m pip install --upgrade pip --quiet
+    pip install -r requirements.txt
+    
+    if %errorlevel% neq 0 (
+        echo [错误] 依赖安装失败，请检查网络连接
+        pause
+        exit /b 1
+    )
+    echo [成功] 依赖安装完成！
+) else (
+    echo [成功] 依赖已就绪
+)
 
 REM 初始化数据库
 if not exist "data\serve\tushare.duckdb" (
