@@ -1,9 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
-chcp 65001 >nul
+chcp 65001 >nul 2>&1
+set PYTHONIOENCODING=utf-8
 echo ========================================
-echo    Tushare 数据分析系统 - 一键启动
-echo ========================================
+echo    Tushare 鏁版嵁鍒嗘瀽绯荤粺 - 涓€閿惎鍔?br>echo ========================================
 echo.
 
 REM 检查Python是否安装
@@ -32,7 +32,7 @@ if not exist ".env" (
 
 REM 检查并更新代码
 if exist ".git\" (
-    echo [提示] 检查代码更新...
+    echo [鎻愮ず] 妫€鏌ヤ唬鐮佹洿鏂?..
     git fetch origin >nul 2>&1
     
     git rev-parse HEAD >nul 2>&1
@@ -42,20 +42,19 @@ if exist ".git\" (
         
         if not "!LOCAL!"=="!REMOTE!" (
             if not "!REMOTE!"=="" (
-                echo [发现更新] 正在从GitHub拉取最新代码...
+                echo [鍙戠幇鏇存柊] 姝ｅ湪浠嶨itHub鎷夊彇鏈€鏂颁唬鐮?..
+                git reset --hard origin/main >nul 2>&1
                 git pull origin main
                 if !errorlevel! neq 0 (
-                    echo [警告] 代码更新失败，可能有本地修改冲突
-                    echo [提示] 继续使用当前版本...
+                    echo [璀﹀憡] 浠ｇ爜鏇存柊澶辫触
+                    echo [鎻愮ず] 缁х画浣跨敤褰撳墠鐗堟湰...
                 ) else (
-                    echo [成功] 代码已更新到最新版本！
+                    echo [鎴愬姛] 浠ｇ爜宸叉洿鏂板埌鏈€鏂扮増鏈紒
                 )
             ) else (
-                echo [成功] 已是最新版本
-            )
+                echo [鎴愬姛] 宸叉槸鏈€鏂扮増鏈?br>            )
         ) else (
-            echo [成功] 已是最新版本
-        )
+            echo [鎴愬姛] 宸叉槸鏈€鏂扮増鏈?br>        )
     )
     echo.
 )
@@ -76,25 +75,23 @@ echo [2/4] 激活虚拟环境...
 call venv\Scripts\activate.bat
 
 REM 检查并安装依赖
-echo [3/4] 检查依赖...
-python -c "import loguru, duckdb, streamlit" >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [提示] 检测到缺少依赖，正在自动安装（首次运行可能需要几分钟）...
+echo [3/4] 妫€鏌ヤ緷璧?..
+python -c "import loguru, duckdb, streamlit, retry" >nul 2>&1
+if !errorlevel! neq 0 (
+    echo [鎻愮ず] 妫€娴嬪埌缂哄皯渚濊禆锛屾鍦ㄨ嚜鍔ㄥ畨瑁?棣栨杩愯鍙兘闇€瑕佸嚑鍒嗛挓锛?..
     echo.
-    python -m pip install --upgrade pip
+    python -m pip install --upgrade pip --quiet
     pip install -r requirements.txt --no-cache-dir
     
-    if %errorlevel% neq 0 (
+    if !errorlevel! neq 0 (
         echo.
-        echo [错误] 依赖安装失败，请手动运行: install_dependencies.bat
+        echo [閿欒] 渚濊禆瀹夎澶辫触锛岃鎵嬪姩杩愯: install_dependencies.bat
         pause
         exit /b 1
     )
     echo.
-    echo [成功] 依赖安装完成！
-) else (
-    echo [成功] 依赖已就绪
-)
+    echo [鎴愬姛] 渚濊禆瀹夎瀹屾垚锛?br>) else (
+    echo [鎴愬姛] 渚濊禆宸插氨缁?br>)
 
 REM 初始化数据库
 if not exist "data\serve\tushare.duckdb" (

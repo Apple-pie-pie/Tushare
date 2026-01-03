@@ -31,15 +31,16 @@ fi
 if [ -d ".git" ]; then
     echo "[提示] 检查代码更新..."
     git fetch origin &> /dev/null
-    LOCAL=$(git rev-parse HEAD)
+    LOCAL=$(git rev-parse HEAD 2>/dev/null)
     REMOTE=$(git rev-parse @{u} 2>/dev/null)
     
     if [ "$LOCAL" != "$REMOTE" ] && [ -n "$REMOTE" ]; then
-        echo "[发现更新] 正在从GitHub拉取最新代码..."
+        echo "[发现更新] 正在从GitHub拉取最新代码（将覆盖本地修改）..."
+        git reset --hard origin/main &> /dev/null
         if git pull origin main; then
             echo "[成功] 代码已更新到最新版本！"
         else
-            echo "[警告] 代码更新失败，可能有本地修改冲突"
+            echo "[警告] 代码更新失败"
             echo "[提示] 继续使用当前版本..."
         fi
     else
@@ -60,10 +61,10 @@ source venv/bin/activate
 
 # 检查并安装依赖
 echo "[3/4] 检查依赖..."
-if ! python -c "import duckdb" &> /dev/null; then
+if ! python -c "import loguru, duckdb, streamlit, retry" &> /dev/null; then
     echo "[提示] 检测到缺少依赖，正在自动安装（首次运行可能需要几分钟）..."
     pip install --upgrade pip --quiet
-    pip install -r requirements.txt
+    pip install -r requirements.txt --no-cache-dir
     
     if [ $? -ne 0 ]; then
         echo "[错误] 依赖安装失败，请检查网络连接"
