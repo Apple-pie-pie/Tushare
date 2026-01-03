@@ -68,17 +68,20 @@ call venv\Scripts\activate.bat
 
 REM 检查并安装依赖
 echo [3/4] 检查依赖...
-python -c "import duckdb" >nul 2>&1
+python -c "import loguru, duckdb, streamlit" >nul 2>&1
 if %errorlevel% neq 0 (
     echo [提示] 检测到缺少依赖，正在自动安装（首次运行可能需要几分钟）...
-    python -m pip install --upgrade pip --quiet
-    pip install -r requirements.txt
+    echo.
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt --no-cache-dir
     
     if %errorlevel% neq 0 (
-        echo [错误] 依赖安装失败，请检查网络连接
+        echo.
+        echo [错误] 依赖安装失败，请手动运行: install_dependencies.bat
         pause
         exit /b 1
     )
+    echo.
     echo [成功] 依赖安装完成！
 ) else (
     echo [成功] 依赖已就绪
