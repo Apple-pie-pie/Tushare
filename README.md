@@ -1,7 +1,13 @@
 # 📈 Tushare 数据面板系统
 
-**数据整合工作台 + 股票分析终端**  
-模仿 Tableau Prep / Alteryx（数据整合）与 TradingView / 同花顺（股票终端）的本地数据面板系统
+**🏠 100%本地运行 | 无需服务器 | 数据存储在本机**
+
+模仿 Tableau Prep / Alteryx（数据整合）与 TradingView / 同花顺（股票终端）的**本地数据分析工具**
+
+> ⚠️ **这是本地应用，不会上传任何数据到云端**  
+> - 所有数据存储在 `data/` 目录的 DuckDB 数据库中  
+> - Token 保存在本地 `.env` 文件，不会外传  
+> - Streamlit 只在本机运行（默认 `localhost:8501`）
 
 ---
 
@@ -35,13 +41,111 @@
 
 ---
 
-## 🚀 快速开始
+## 🚀 快速开始（本地使用）
 
-### 1️⃣ 安装依赖
+### 方式1：从GitHub克隆（推荐）
 
 ```bash
-# 创建虚拟环境（推荐）
+# 1. 克隆仓库
+git clone https://github.com/Apple-pie-pie/Tushare.git
+cd Tushare
+
+# 2. 创建虚拟环境（推荐）
 python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. 安装依赖
+pip install -r requirements.txt
+
+# 4. 配置Token
+cp .env.example .env
+# 用文本编辑器打开 .env，填入你的 Tushare Token
+
+# 5. 初始化数据库
+python scripts/init_db.py
+
+# 6. 启动应用（本地运行）
+streamlit run ui/app.py
+```
+
+浏览器自动打开 `http://localhost:8501`（只在你的电脑上运行）
+
+### 方式2：下载ZIP包使用
+
+```bash
+# 1. 从GitHub下载ZIP并解压
+# 2. 打开终端，进入解压目录
+cd Tushare-main
+
+# 3-6. 同上（安装依赖、配置Token、初始化、启动）
+```
+
+---
+
+## 📋 本地使用流程
+
+### 首次使用（冷启动）
+
+1. **配置Token**（本地保存）
+   - 进入 Settings 页面
+   - 输入你的 Tushare Token（从 https://tushare.pro 获取）
+   - 点击"保存配置"→ Token 会保存到本地 `.env` 文件
+   - 测试连接，查看你的积分
+
+2. **拉取基础数据**（存储在本地）
+   - 进入 Data Studio
+   - 拉取交易日历（2010-至今）
+   - 拉取股票列表
+   - 数据会存储在 `data/serve/tushare.duckdb`
+
+3. **拉取行情数据**
+   - 选择日期范围，批量拉取日线行情
+   - 建议先拉取最近30-90天测试
+   - 所有数据都在本地 DuckDB
+
+4. **构建面板**
+   - 对拉取的日期执行"批量构建面板"
+   - 生成 daily_panel（合并行情+指标+复权）
+
+5. **开始分析**
+   - 进入 Market Terminal
+   - 添加自选股，查看K线图
+   - 所有查询都在本地数据库
+
+### 日常使用
+
+每天打开应用：
+```bash
+# 进入项目目录
+cd Tushare
+
+# 激活虚拟环境（如果使用）
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 启动应用
+streamlit run ui/app.py
+```
+
+更新昨日数据：
+1. 进入 Data Studio
+2. 选择昨天的日期
+3. 点击"拉取单日行情"
+4. 点击"构建面板"
+
+---
+
+## 🔒 数据安全说明
+
+### ✅ 本地存储，不上传云端
+- **Token**：保存在本地 `.env` 文件，不会提交到 Git（已添加到 `.gitignore`）
+- **数据库**：存储在 `data/serve/tushare.duckdb`（本地文件）
+- **网络请求**：只调用 Tushare API 拉取数据，不会上传到任何其他服务器
+- **Streamlit**：只在本机运行（`localhost:8501`），不会暴露到公网
+
+### ⚠️ 使用建议
+- **不要把 `.env` 文件上传到 GitHub**（已配置 `.gitignore` 保护）
+- **数据库文件可以备份**：直接复制 `data/` 目录即可
+- **分享给他人**：只分享代码，不要分享 `.env` 和 `data/` 目录
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 安装依赖
@@ -72,6 +176,70 @@ streamlit run ui/app.py
 ```
 
 浏览器将自动打开 `http://localhost:8501`
+
+---
+
+## 🔧 系统架构（本地运行）
+
+```
+┌─────────────────────────────────────┐
+│  你的电脑（localhost）               │
+│                                      │
+│  ┌────────────────────────────┐    │
+│  │  Streamlit UI              │    │
+│  │  (http://localhost:8501)   │    │
+│  └──────────┬─────────────────┘    │
+│             │                        │
+│  ┌──────────▼─────────────────┐    │
+│  │  Python 后端逻辑            │    │
+│  │  (src/core, src/etl)        │    │
+│  └──────────┬─────────────────┘    │
+│             │                        │
+│  ┌──────────▼─────────────────┐    │
+│  │  DuckDB 本地数据库          │    │
+│  │  (data/serve/tushare.duckdb)│    │
+│  └────────────────────────────┘    │
+│                                      │
+└──────────────┬───────────────────────┘
+               │ 仅此处需要网络
+               ▼
+    ┌────────────────────┐
+    │  Tushare Pro API   │
+    │  (拉取股票数据)    │
+    └────────────────────┘
+```
+
+**数据流向**：
+1. 你的电脑 → Tushare API（拉取数据）
+2. Tushare API → 你的电脑（返回数据）
+3. 数据存储在本地 DuckDB
+4. UI 查询本地数据库
+
+**不涉及**：
+- ❌ 云服务器部署
+- ❌ 数据上传到云端
+- ❌ 需要公网IP
+- ❌ 需要域名
+
+---
+
+## 📦 分发给他人使用
+
+### 方式1：分享GitHub链接
+把仓库地址发给对方：`https://github.com/Apple-pie-pie/Tushare`  
+对方按照"快速开始"章节操作即可
+
+### 方式2：打包成ZIP
+```bash
+# 1. 清理数据和配置（不要分享你的Token和数据）
+rm -rf data/serve/*.duckdb
+rm .env
+
+# 2. 压缩项目
+zip -r Tushare.zip . -x "*.git*" -x "*__pycache__*" -x "venv/*"
+
+# 3. 发送 Tushare.zip 给对方
+```
 
 ---
 
@@ -240,6 +408,50 @@ df = builder.query_panel(
 
 ---
 
+## ❓ 常见问题（FAQ）
+
+### Q1: 需要服务器吗？
+**不需要**。这是 100% 本地应用，只在你的电脑上运行。
+
+### Q2: 数据存在哪里？
+**本地 DuckDB 文件**：`data/serve/tushare.duckdb`。你可以：
+- 备份：复制 `data/` 目录
+- 迁移：把 `data/` 复制到另一台电脑
+- 删除：直接删除 `data/` 目录重新开始
+
+### Q3: Token 安全吗？
+**安全**。Token 保存在本地 `.env` 文件，已添加到 `.gitignore`，不会被提交到 GitHub。
+
+### Q4: 可以在公司内网使用吗？
+**可以**。只要能访问 `tushare.pro` 拉取数据即可。UI 只在本机运行。
+
+### Q5: 多台电脑使用怎么办？
+- **方案1**：每台电脑独立安装（各自拉取数据）
+- **方案2**：共享 `data/` 目录（通过网盘/NAS同步）
+- **方案3**：升级为路线B，部署到内网服务器
+
+### Q6: 如何关闭应用？
+在终端按 `Ctrl+C` 即可停止 Streamlit。数据已保存在本地数据库。
+
+### Q7: 卸载怎么办？
+直接删除整个 `Tushare/` 目录即可。没有任何系统级安装。
+
+### Q8: 数据拉取很慢？
+- 按交易日拉取（推荐）：一天5000股票一次拉完
+- 避免按股票代码循环拉取
+- 5000+积分限频：500次/分钟
+
+### Q9: 如何备份数据？
+```bash
+# 备份整个data目录
+cp -r data/ data_backup_20260103/
+
+# 或只备份数据库文件
+cp data/serve/tushare.duckdb data/serve/tushare_backup.duckdb
+```
+
+---
+
 ## ❓ 常见问题
 
 ### Q1: Token在哪里获取？
@@ -278,12 +490,18 @@ MIT License
 
 ---
 
+## � 许可证
+
+MIT License - 可自由使用、修改、分发
+
+---
+
 ## 🙏 致谢
 
 - [Tushare Pro](https://tushare.pro) - 数据源
 - [Streamlit](https://streamlit.io) - UI框架
-- [DuckDB](https://duckdb.org) - 数据库
+- [DuckDB](https://duckdb.org) - 本地数据库
 
 ---
 
-**💡 提示**：本系统为路线A快速原型，核心逻辑已验证。后续可无缝升级为路线B专业版。
+**💡 记住：这是 100% 本地应用，你的数据完全在自己掌控中！**
